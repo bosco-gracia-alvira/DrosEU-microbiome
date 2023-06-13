@@ -51,3 +51,6 @@ rsconnect/
 # Excel files
 *.xls
 *.xlsx
+
+# The whole "data" directory
+data/
