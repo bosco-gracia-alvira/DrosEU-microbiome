@@ -18,11 +18,10 @@ then
     "$RAW_READS"
 fi
 
-esearch -db sra -query 'PRJNA388788[bioproject]' | efetch -format runinfo > "$WORKDIR"/PRJNA388788.csv
+# With this command we can download the metadata from the BioProjects
+esearch -db sra -query 'PRJNA388788[bioproject]' | efetch -format runinfo > "$WORKDIR"/NCBI_PRJNA388788.csv
 
-esearch -db sra -query 'PRJNA308584[bioproject]' | efetch -format runinfo > "$WORKDIR"/PRJNA308584.csv
+esearch -db sra -query 'PRJNA308584[bioproject]' | efetch -format runinfo > "$WORKDIR"/NCBI_PRJNA308584.csv
 
 
-
-prefetch SRR8494439 | fasterq-dump SRR8494439
 
