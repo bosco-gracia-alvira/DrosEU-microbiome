@@ -22,7 +22,8 @@ fi
 # I select the fields: "run_accession", "experimental_alias", "fastq_ftp" and "library_name".
 if [[ ! -f "$WORKDIR"/ENA_* ]]
 then
-  echo "You need at least one ENA file if you want to download reads."
+  echo "You need at least one ENA file if you want to download reads.
+        The nomenclature I use is ENA_PRJNAXXXXXX.tsv"
   exit
 fi
 
@@ -32,8 +33,31 @@ cat "$WORKDIR"/ENA_* | cut -f4 | tr ";" "\n" | grep -v "fastq_ftp" > "$WORKDIR"/
 # We download all the files into "RAW_READS"
 wget -P "$RAW_READS" -i "$WORKDIR"/ftp.txt
 
-# Using the ENA information we rename the files to make them match the library name
-for i in $(cat "$WORKDIR"/ENA_* | cut -f1,2 | tr "\t" ",")
-do  rename "s/$(echo "${i}" | cut -f1 -d ",")\./$(echo "${i}" | cut -f2 -d ",")\./" "$RAW_READS"/*
+# We want to make sure that we have downloaded both pairs for all the files. 
+# If it is not the case, we re-run wget on the lines that are missing.
+for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
+do
+    if [ -f "$RAW_READS"/"${i}"_1.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}"_2.fastq.gz ]
+    then
+      echo "${i}_2.fastq.gz"
+      wget -P "$RAW_READS" $(grep "${i}_2.fastq.gz" "$WORKDIR"/ftp.txt)
+    elif [ -f "$RAW_READS"/"${i}"_2.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}"_1.fastq.gz ]
+    then 
+      echo "${i}_1.fastq.gz"
+      wget -P "$RAW_READS" $(grep "${i}_1.fastq.gz" "$WORKDIR"/ftp.txt)
+    elif [ ! -f "$RAW_READS"/"${i}"_2.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}"_1.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}".fastq.gz ]
+    then
+      wget -P "$RAW_READS" $(grep "${i}" "$WORKDIR"/ftp.txt)
+    fi
 done
+
+# For some reason, in paired-end SRR accessions a file with low quality reads is also downloaded. We don't want it.
+# for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
+# do
+#     if [ -f "$RAW_READS"/"${i}"_1.fastq.gz ] && [ -f "$RAW_READS"/"${i}"_2.fastq.gz ] && [ -f "$RAW_READS"/"${i}".fastq.gz ]
+#     then
+#       #rm "$RAW_READS"/"${i}".fastq.gz
+#       echo "File "${i}".fastq.gz was lost forever. It weighted $(wc -c "$RAW_READS"/"${i}".fastq.gz | cut -f2 -d " ")"
+#     fi
+# done
 
