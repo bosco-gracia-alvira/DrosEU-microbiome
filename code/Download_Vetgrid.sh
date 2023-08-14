@@ -20,12 +20,15 @@ fi
 # We check if we have the ENA files needed to download the reads. 
 # These files have to be downloaded manually from the ENA webpage.
 # I select the fields: "run_accession", "experimental_alias", "fastq_ftp" and "library_name".
-if [[ ! -f "$WORKDIR"/ENA_* ]]
-then
-  echo "You need at least one ENA file if you want to download reads.
-        The nomenclature I use is ENA_PRJNAXXXXXX.tsv"
-  exit
-fi
+for i in "$WORKDIR"/ENA_*.tsv
+do
+  if [[ ! -e "$i" ]]
+  then
+    echo "You need at least one ENA file if you want to download reads.
+          The nomenclature I use is ENA_PRJNAXXXXXX.tsv"
+    exit
+  fi
+done
 
 # We create a txt file with the ftp paths. The forth column contains the ftp paths.
 cat "$WORKDIR"/ENA_* | cut -f4 | tr ";" "\n" | grep -v "fastq_ftp" > "$WORKDIR"/ftp.txt
