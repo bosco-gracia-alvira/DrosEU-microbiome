@@ -16,18 +16,18 @@
     "centrifuge": {
         "threads": 2,
         "run": true,
-        "db": ""
+        "db": "/Users/bgracia/PhD_local/db/centrifuge"
     },
     "anvi_run_hmms": {
         "run": true,
-        "threads": 5,
+        "threads": 8,
         "--also-scan-trnas": true,
         "--installed-hmm-profile": "",
         "--hmm-profile-dir": ""
     },
     "anvi_run_kegg_kofams": {
         "run": true,
-        "threads": 4,
+        "threads": 8,
         "--kegg-data-dir": "",
         "--hmmer-program": "",
         "--keep-all-hits": "",
@@ -36,7 +36,7 @@
     },
     "anvi_run_ncbi_cogs": {
         "run": true,
-        "threads": 5,
+        "threads": 8,
         "--cog-data-dir": "",
         "--sensitive": "",
         "--temporary-dir-path": "",
@@ -44,12 +44,12 @@
     },
     "anvi_run_scg_taxonomy": {
         "run": true,
-        "threads": 6,
+        "threads": 8,
         "--scgs-taxonomy-data-dir": ""
     },
     "anvi_run_trna_scan": {
         "run": true,
-        "threads": 6,
+        "threads": 8,
         "--trna-cutoff-score": ""
     },
     "anvi_script_reformat_fasta": {
@@ -71,7 +71,7 @@
     },
     "anvi_script_run_eggnog_mapper": {
         "--use-version": "0.12.6",
-        "run": true,
+        "run": false,
         "--cog-data-dir": "",
         "--drop-previous-annotations": "",
         "threads": ""
@@ -79,7 +79,7 @@
     "samples_txt": "samples.txt",
     "metaspades": {
         "additional_params": "--only-assembler",
-        "threads": 7,
+        "threads": 8,
         "run": true,
         "use_scaffolds": ""
     },
@@ -156,7 +156,7 @@
         "threads": ""
     },
     "anvi_profile": {
-        "threads": 3,
+        "threads": 8,
         "--sample-name": "{sample}",
         "--overwrite-output-destinations": true,
         "--report-variability-full": "",
@@ -166,7 +166,7 @@
         "--skip-hierarchical-clustering": "",
         "--distance": "",
         "--linkage": "",
-        "--min-contig-length": "",
+        "--min-contig-length": 1000,
         "--min-mean-coverage": "",
         "--min-coverage-for-variability": "",
         "--cluster-contigs": "",
@@ -193,7 +193,7 @@
         "threads": 3,
         "--gzip-compressed": true,
         "additional_params": "",
-        "run": "",
+        "run": false,
         "--db": ""
     },
     "remove_short_reads_based_on_references": {
@@ -204,15 +204,15 @@
     },
     "anvi_cluster_contigs": {
         "--collection-name": "{driver}",
-        "run": "",
-        "--driver": "",
+        "run": true,
+        "--driver": "metabat2",
         "--just-do-it": "",
         "--additional-params-concoct": "",
         "--additional-params-metabat2": "",
         "--additional-params-maxbin2": "",
         "--additional-params-dastool": "",
         "--additional-params-binsanity": "",
-        "threads": ""
+        "threads": 8
     },
     "gen_external_genome_file": {
         "threads": ""
@@ -289,16 +289,16 @@
     "kraken_txt": "",
     "collections_txt": "",
     "output_dirs": {
-        "FASTA_DIR": "02_FASTA",
-        "CONTIGS_DIR": "03_CONTIGS",
-        "QC_DIR": "01_QC",
-        "MAPPING_DIR": "04_MAPPING",
-        "PROFILE_DIR": "05_ANVIO_PROFILE",
-        "MERGE_DIR": "06_MERGED",
-        "TAXONOMY_DIR": "07_TAXONOMY",
-        "SUMMARY_DIR": "08_SUMMARY",
-        "SPLIT_PROFILES_DIR": "09_SPLIT_PROFILES",
-        "LOGS_DIR": "00_LOGS"
+        "FASTA_DIR": "$WORKDIR/02_FASTA",
+        "CONTIGS_DIR": "$WORKDIR/03_CONTIGS",
+        "QC_DIR": "$WORKDIR/01_QC",
+        "MAPPING_DIR": "$WORKDIR/04_MAPPING",
+        "PROFILE_DIR": "$WORKDIR/05_ANVIO_PROFILE",
+        "MERGE_DIR": "$WORKDIR/06_MERGED",
+        "TAXONOMY_DIR": "$WORKDIR/07_TAXONOMY",
+        "SUMMARY_DIR": "$WORKDIR/08_SUMMARY",
+        "SPLIT_PROFILES_DIR": "$WORKDIR/09_SPLIT_PROFILES",
+        "LOGS_DIR": "$WORKDIR/00_LOGS"
     },
     "max_threads": "",
     "config_version": "2",
