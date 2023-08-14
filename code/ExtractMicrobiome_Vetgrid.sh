@@ -23,6 +23,12 @@ then
         "$WORKDIR"/references
 fi
 
+if [[ ! -d "$WORKDIR"/raw_reads ]]
+then
+    mkdir -p \
+        "$WORKDIR"/raw_reads
+fi
+
 # We create a reference genome by concatenating D. melanogaster (v6.52) and D. simulans (v2.02) genomes from flybase.org, as well as other eukaryotic genomes that could potentially be contaminating our samples based on previous experiences.
 # These eukaryotes are: H. sapiens, M. musculus, A. thaliana, S. cerevisiae and C. lupus familiaris. We download the latest reference genome from RefSeq.
 if [[ ! -f "$WORKDIR"/references/reference.fa ]]
@@ -93,8 +99,8 @@ do
         samtools fixmate -u -@ 24 - - |\
         samtools view -u -@ 24 -f 0x1 - |\
         samtools fastq -@ 24 -N -0 /dev/null -s /dev/null \
-            -1 "$RAW_READS"/extracted/"${i}"_1.fastq.gz \
-            -2 "$RAW_READS"/extracted/"${i}"_2.fastq.gz \
+            -1 "$WORKDIR"/raw_reads/"${i}"_1.fastq.gz \
+            -2 "$WORKDIR"/raw_reads/"${i}"_2.fastq.gz \
             -
     elif [[ ! -f "$RAW_READS"/"${i}"_1.fastq.gz ]]
     then
@@ -107,88 +113,25 @@ do
         samtools view \
             -Sbh -F 0x100 -f 0x4 - |\
         samtools collate -Ou -@ 24 - |\
-        samtools fastq -@ 24 -0 /dev/null - > "$RAW_READS"/extracted/"${i}".fastq.gz
+        samtools fastq -@ 24 -0 /dev/null - > "$WORKDIR"/raw_reads/"${i}".fastq.gz
     else
-        echo "Sample ${i} could not be processed" >> "$RAW_READS"/extracted/log.txt
-    fi
-done
-
-# I map the reads against a reference that includes H. sapiens, M. musculus, A. thaliana and S. cerevisiae genomes, which are common contaminants in sequencing experiments. I retrieve the reads that have not mapped to any of these genomes.
-if [[ ! -f "$WORKDIR"/references/contaminants.fa ]]
-then
-    mkdir "$WORKDIR"/references
-
-    # H. sapiens
-    wget -O "$WORKDIR"/references/Hsapiens.fa.gz \
-        ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh38_latest/refseq_identifiers/GRCh38_latest_genomic.fna.gz
-
-    # M. musculus
-    wget -O "$WORKDIR"/references/Mmusculus.fa.gz \
-        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Mus_musculus/reference/GCF_000001635.27_GRCm39/GCF_000001635.27_GRCm39_genomic.fna.gz
-
-    # A. thaliana
-    wget -O "$WORKDIR"/references/Athaliana.fa.gz \
-        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/plant/Arabidopsis_thaliana/reference/GCF_000001735.4_TAIR10.1/GCF_000001735.4_TAIR10.1_genomic.fna.gz
-
-    # S. cerevisiae
-    wget -O "$WORKDIR"/references/Scerevisiae.fa.gz \
-        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/fungi/Saccharomyces_cerevisiae/reference/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
-
-    # C. lupus
-    wget -O "$WORKDIR"/references/Clupus.fa.gz \
-        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Canis_lupus_familiaris/representative/GCF_011100685.1_UU_Cfam_GSD_1.0/GCF_011100685.1_UU_Cfam_GSD_1.0_genomic.fna.gz
-
-    # I concatenate the 5 genomes into a single file and index it.
-    gzcat "$WORKDIR"/references/Hsapiens.fa.gz \
-          "$WORKDIR"/references/Mmusculus.fa.gz \
-          "$WORKDIR"/references/Athaliana.fa.gz \
-          "$WORKDIR"/references/Scerevisiae.fa.gz\
-          "$WORKDIR"/references/Clupus.fa.gz > "$WORKDIR"/references/contaminants.fa
-
-    bwa index -p "$WORKDIR"/references/reference "$WORKDIR"/references/reference.fa
-
-    rm "$WORKDIR"/references/*.fa.gz
-fi
-
-# This for loop is the same that we have just run 
-for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
-do
-    if [[ -f "$RAW_READS"/"${i}"_1.fastq.gz ]]
-    then
-        bwa mem \
-            -M \
-            -t 24 \
-            -R "@RG\tID:${i}\tSM:${i}" \
-            "$REFERENCE" \
-            "$RAW_READS"/extracted_copy/"${i}"_1.fastq.gz \
-            "$RAW_READS"/extracted_copy/"${i}"_2.fastq.gz |\
-        samtools view \
-            -Sbh -F 0x100 -@ 24 -f 0xc - |\
-        samtools collate -Ou -@ 24 - |\
-        samtools fixmate -u -@ 24 - - |\
-        samtools view -u -@ 24 -f 0x1 - |\
-        samtools fastq -@ 24 -N -0 /dev/null -s /dev/null \
-            -1 "$RAW_READS"/extracted_copy/"${i}"_1.fq.gz \
-            -2 "$RAW_READS"/extracted_copy/"${i}"_2.fq.gz \
-            -
-    else
-        echo "Sample ${i} could not be processed" >> "$RAW_READS"/extracted_copy/log.txt
+        echo "Sample ${i} could not be processed" >> "$WORKDIR"/raw_reads/log.txt
     fi
 done
 
 # We check if the same accessions are found in the "raw reads" and in the "extracted reads"
 for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
 do
-    if [[ -n "$(find "$RAW_READS" -name "${i}*.fastq.gz" -maxdepth 1 -print -quit)" && -n "$(find "$RAW_READS/extracted" -name "${i}*.fastq.gz" -print -quit)" ]]
+    if [[ -n "$(find "$RAW_READS" -name "${i}*.fastq.gz" -maxdepth 1 -print -quit)" && -n "$(find ""$WORKDIR"/raw_reads" -name "${i}*.fastq.gz" -print -quit)" ]]
     then
-        echo "Sample ${i} was correctly processed" >> "$RAW_READS"/extracted/log2.txt
+        :
     else
-        echo "Sample ${i} is missing" >> "$RAW_READS"/extracted/log2.txt
+        echo "Sample ${i} is missing" >> "$WORKDIR"/raw_reads/log2.txt
     fi
 done
 
 # Using the ENA information we rename the files to make them match the library name
 for i in $(cat "$WORKDIR"/ENA_* | cut -f1,2 | tr "\t" ",")
 do  
-    rename -s $(echo "${i}" | cut -f1 -d ",") $(echo "${i}" | cut -f2 -d ",") "$RAW_READS"/extracted/"$(echo "${i}" | cut -f1 -d ",")"*
+    rename -s $(echo "${i}" | cut -f1 -d ",") $(echo "${i}" | cut -f2 -d ",") "$WORKDIR"/raw_reads/"$(echo "${i}" | cut -f1 -d ",")"_?.fastq.gz
 done
