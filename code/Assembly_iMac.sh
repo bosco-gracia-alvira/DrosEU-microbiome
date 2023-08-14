@@ -6,7 +6,7 @@
 
 ### VARIABLES
 RAW_READS="/Volumes/Temp/DrosEU/extracted"
-WORKDIR="/Volumes/Data/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/DeNovo_Assembly"
+WORKDIR="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU/data"
 REFERENCE="$WORKDIR/references/reference"
 TEMP="/Volumes/Data/temp"
 
