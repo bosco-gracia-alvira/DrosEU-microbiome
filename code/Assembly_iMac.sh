@@ -6,19 +6,19 @@
 
 ### VARIABLES
 CODE="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/code"
-WORKDIR="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data"
-RAW_READS="$WORKDIR"/raw_reads
+WORKDIR="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/DeNovo_Assembly"
+RAW_READS="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/raw_reads"
 
 eval "$(conda shell.bash hook)"
 conda activate anvio-7.1
 
 ### COMMANDS
-if [[ ! -d "$WORKDIR"/DeNovo_Assembly ]]
+if [[ ! -d "$WORKDIR" ]]
 then  
-  mkdir -p "$WORKDIR"/DeNovo_Assembly
+  mkdir -p "$WORKDIR"
 fi
 
-cd "$WORKDIR"/DeNovo_Assembly || exit
+cd "$WORKDIR" || exit
 
 anvi-run-workflow -w metagenomics \
                   -c "$CODE"/metagenomics-config.json \
