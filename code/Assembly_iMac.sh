@@ -5,15 +5,27 @@
 # Bosco Gracia Alvira, 2023
 
 ### VARIABLES
-RAW_READS="/Volumes/Temp/DrosEU/extracted"
-WORKDIR="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU/data"
-REFERENCE="$WORKDIR/references/reference"
-TEMP="/Volumes/Data/temp"
+CODE="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/code"
+WORKDIR="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data"
+RAW_READS="$WORKDIR"/raw_reads
 
 eval "$(conda shell.bash hook)"
 conda activate anvio-7.1
 
 ### COMMANDS
+if [[ ! -d "$WORKDIR"/DeNovo_Assembly ]]
+then  
+  mkdir -p "$WORKDIR"/DeNovo_Assembly
+fi
+
+cd "$WORKDIR"/DeNovo_Assembly || exit
+
+anvi-run-workflow -w metagenomics \
+                  -c "$CODE"/metagenomics-config.json \
+                  --save-workflow-graph
+
+
+
 
 if [[ ! -d "$WORKDIR" ]]
 then  
