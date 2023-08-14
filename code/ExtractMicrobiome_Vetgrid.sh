@@ -7,15 +7,14 @@
 ### VARIABLES
 RAW_READS="/Volumes/Temp/DrosEU"
 WORKDIR="/Volumes/Data/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data"
-REFERENCE="$WORKDIR"/references/reference.fa.gz
-ADAPTERS="/Volumes/Data/Dropbox (PopGen)/Bosco/PhD_Dropbox/db/Adapters"
+REFERENCE="$WORKDIR/references/reference"
+
 ### COMMANDS
 
 # We check if there are raw reads and if we have a reference folder
-if [[ ! -f "$RAW_READS"/*.fastq.gz ]]
+if [[ ! -d "$RAW_READS"/extracted ]]
 then
-    echo "You don't have any poolseq from which you can extract the microbiome."
-    exit
+    mkdir "$RAW_READS"/extracted
 fi
 
 if [[ ! -d "$WORKDIR"/references ]]
@@ -24,83 +23,172 @@ then
         "$WORKDIR"/references
 fi
 
-# We create a reference genome by concatenating D. melanogaster (v6.52) and D. simulans (v2.02) genomes from flybase.org
-wget -O "$WORKDIR"/references/dsim202.fa.gz http://ftp.flybase.net/genomes/Drosophila_simulans/dsim_r2.02_FB2020_03/fasta/dsim-all-chromosome-r2.02.fasta.gz
-wget -O "$WORKDIR"/references/dmel652.fa.gz http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.52_FB2023_03/fasta/dmel-all-chromosome-r6.52.fasta.gz
+# We create a reference genome by concatenating D. melanogaster (v6.52) and D. simulans (v2.02) genomes from flybase.org, as well as other eukaryotic genomes that could potentially be contaminating our samples based on previous experiences.
+# These eukaryotes are: H. sapiens, M. musculus, A. thaliana, S. cerevisiae and C. lupus familiaris. We download the latest reference genome from RefSeq.
+if [[ ! -f "$WORKDIR"/references/reference.fa ]]
+then
+    # D. simulans
+    wget -O "$WORKDIR"/references/dsim202.fa.gz \
+        http://ftp.flybase.net/genomes/Drosophila_simulans/dsim_r2.02_FB2020_03/fasta/dsim-all-chromosome-r2.02.fasta.gz
+    
+    # D. melanogaster
+    wget -O "$WORKDIR"/references/dmel652.fa.gz \
+        http://ftp.flybase.net/genomes/Drosophila_melanogaster/dmel_r6.52_FB2023_03/fasta/dmel-all-chromosome-r6.52.fasta.gz
+    
+    # H. sapiens
+    wget -O "$WORKDIR"/references/Hsapiens.fa.gz \
+        ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh38_latest/refseq_identifiers/GRCh38_latest_genomic.fna.gz
 
-zcat "$WORKDIR"/references/dmel652.fa.gz "$WORKDIR"/references/dsim202.fa.gz > "$WORKDIR"/references/reference.fa.gz
+    # M. musculus
+    wget -O "$WORKDIR"/references/Mmusculus.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Mus_musculus/reference/GCF_000001635.27_GRCm39/GCF_000001635.27_GRCm39_genomic.fna.gz
+
+    # A. thaliana
+    wget -O "$WORKDIR"/references/Athaliana.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/plant/Arabidopsis_thaliana/reference/GCF_000001735.4_TAIR10.1/GCF_000001735.4_TAIR10.1_genomic.fna.gz
+
+    # S. cerevisiae
+    wget -O "$WORKDIR"/references/Scerevisiae.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/fungi/Saccharomyces_cerevisiae/reference/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
+
+    # C. lupus
+    wget -O "$WORKDIR"/references/Clupus.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Canis_lupus_familiaris/representative/GCF_011100685.1_UU_Cfam_GSD_1.0/GCF_011100685.1_UU_Cfam_GSD_1.0_genomic.fna.gz
+
+    # We concatenate the 7 genomes into a single file and index it.
+    gzcat "$WORKDIR"/references/dsim202.fa.gz \
+          "$WORKDIR"/references/dmel652.fa.gz \
+          "$WORKDIR"/references/Hsapiens.fa.gz \
+          "$WORKDIR"/references/Mmusculus.fa.gz \
+          "$WORKDIR"/references/Athaliana.fa.gz \
+          "$WORKDIR"/references/Scerevisiae.fa.gz\
+          "$WORKDIR"/references/Clupus.fa.gz > "$WORKDIR"/references/reference.fa
+
+    # We index the reference
+    bwa index -p "$WORKDIR"/references/reference "$WORKDIR"/references/reference.fa
+
+    # We don't want the genomes wasting space anymore
+    rm "$WORKDIR"/references/*.fa.gz
+
+fi
 
 
-# We use bbduk, from bbtools, to trim the reads. 
-# The first command removes the illumina adapters. The adapters.fa file can be downloaded from the BBMap documents.
-for i in $(basename "$RAW_READS"/*_1.fastq.gz | cut -f1 -d "_")
+# Reads retrieved from ENA are already trimmed and don't have adapters :) If you don't believe me run FastQC
+# We align them to the reference file
+
+for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
+do
+    if [[ -f "$RAW_READS"/"${i}"_1.fastq.gz ]]
+    then
+        bwa mem \
+            -M \
+            -t 24 \
+            -R "@RG\tID:${i}\tSM:${i}" \
+            "$REFERENCE" \
+            "$RAW_READS"/"${i}"_1.fastq.gz \
+            "$RAW_READS"/"${i}"_2.fastq.gz |\
+        samtools view \
+            -Sbh -F 0x100 -@ 24 -f 0xc - |\
+        samtools collate -Ou -@ 24 - |\
+        samtools fixmate -u -@ 24 - - |\
+        samtools view -u -@ 24 -f 0x1 - |\
+        samtools fastq -@ 24 -N -0 /dev/null -s /dev/null \
+            -1 "$RAW_READS"/extracted/"${i}"_1.fastq.gz \
+            -2 "$RAW_READS"/extracted/"${i}"_2.fastq.gz \
+            -
+    elif [[ ! -f "$RAW_READS"/"${i}"_1.fastq.gz ]]
+    then
+        bwa mem \
+            -M \
+            -t 24 \
+            -R "@RG\tID:${i}\tSM:${i}" \
+            "$REFERENCE" \
+            "$RAW_READS"/"${i}".fastq.gz |\
+        samtools view \
+            -Sbh -F 0x100 -f 0x4 - |\
+        samtools collate -Ou -@ 24 - |\
+        samtools fastq -@ 24 -0 /dev/null - > "$RAW_READS"/extracted/"${i}".fastq.gz
+    else
+        echo "Sample ${i} could not be processed" >> "$RAW_READS"/extracted/log.txt
+    fi
+done
+
+# I map the reads against a reference that includes H. sapiens, M. musculus, A. thaliana and S. cerevisiae genomes, which are common contaminants in sequencing experiments. I retrieve the reads that have not mapped to any of these genomes.
+if [[ ! -f "$WORKDIR"/references/contaminants.fa ]]
+then
+    mkdir "$WORKDIR"/references
+
+    # H. sapiens
+    wget -O "$WORKDIR"/references/Hsapiens.fa.gz \
+        ftp://ftp.ncbi.nlm.nih.gov/refseq/H_sapiens/annotation/GRCh38_latest/refseq_identifiers/GRCh38_latest_genomic.fna.gz
+
+    # M. musculus
+    wget -O "$WORKDIR"/references/Mmusculus.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Mus_musculus/reference/GCF_000001635.27_GRCm39/GCF_000001635.27_GRCm39_genomic.fna.gz
+
+    # A. thaliana
+    wget -O "$WORKDIR"/references/Athaliana.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/plant/Arabidopsis_thaliana/reference/GCF_000001735.4_TAIR10.1/GCF_000001735.4_TAIR10.1_genomic.fna.gz
+
+    # S. cerevisiae
+    wget -O "$WORKDIR"/references/Scerevisiae.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/fungi/Saccharomyces_cerevisiae/reference/GCF_000146045.2_R64/GCF_000146045.2_R64_genomic.fna.gz
+
+    # C. lupus
+    wget -O "$WORKDIR"/references/Clupus.fa.gz \
+        https://ftp.ncbi.nlm.nih.gov/genomes/refseq/vertebrate_mammalian/Canis_lupus_familiaris/representative/GCF_011100685.1_UU_Cfam_GSD_1.0/GCF_011100685.1_UU_Cfam_GSD_1.0_genomic.fna.gz
+
+    # I concatenate the 5 genomes into a single file and index it.
+    gzcat "$WORKDIR"/references/Hsapiens.fa.gz \
+          "$WORKDIR"/references/Mmusculus.fa.gz \
+          "$WORKDIR"/references/Athaliana.fa.gz \
+          "$WORKDIR"/references/Scerevisiae.fa.gz\
+          "$WORKDIR"/references/Clupus.fa.gz > "$WORKDIR"/references/contaminants.fa
+
+    bwa index -p "$WORKDIR"/references/reference "$WORKDIR"/references/reference.fa
+
+    rm "$WORKDIR"/references/*.fa.gz
+fi
+
+# This for loop is the same that we have just run 
+for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
+do
+    if [[ -f "$RAW_READS"/"${i}"_1.fastq.gz ]]
+    then
+        bwa mem \
+            -M \
+            -t 24 \
+            -R "@RG\tID:${i}\tSM:${i}" \
+            "$REFERENCE" \
+            "$RAW_READS"/extracted_copy/"${i}"_1.fastq.gz \
+            "$RAW_READS"/extracted_copy/"${i}"_2.fastq.gz |\
+        samtools view \
+            -Sbh -F 0x100 -@ 24 -f 0xc - |\
+        samtools collate -Ou -@ 24 - |\
+        samtools fixmate -u -@ 24 - - |\
+        samtools view -u -@ 24 -f 0x1 - |\
+        samtools fastq -@ 24 -N -0 /dev/null -s /dev/null \
+            -1 "$RAW_READS"/extracted_copy/"${i}"_1.fq.gz \
+            -2 "$RAW_READS"/extracted_copy/"${i}"_2.fq.gz \
+            -
+    else
+        echo "Sample ${i} could not be processed" >> "$RAW_READS"/extracted_copy/log.txt
+    fi
+done
+
+# We check if the same accessions are found in the "raw reads" and in the "extracted reads"
+for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
+do
+    if [[ -n "$(find "$RAW_READS" -name "${i}*.fastq.gz" -maxdepth 1 -print -quit)" && -n "$(find "$RAW_READS/extracted" -name "${i}*.fastq.gz" -print -quit)" ]]
+    then
+        echo "Sample ${i} was correctly processed" >> "$RAW_READS"/extracted/log2.txt
+    else
+        echo "Sample ${i} is missing" >> "$RAW_READS"/extracted/log2.txt
+    fi
+done
+
+# Using the ENA information we rename the files to make them match the library name
+for i in $(cat "$WORKDIR"/ENA_* | cut -f1,2 | tr "\t" ",")
 do  
-    bbduk.sh \
-        -Xmx24g \
-        in1="$RAW_READS"/${i}_1.fastq.gz \
-        in2="$RAW_READS"/${i}_2.fastq.gz \
-        out1="$RAW_READS"/${i}.RmAdp_1.fq.gz \
-        out2="$RAW_READS"/${i}.RmAdp_2.fq.gz \
-        ref="$ADAPTERS"/adapters.fa \
-        ktrim=r k=23 mink=11 hdist=1 tbo tpe
+    rename -s $(echo "${i}" | cut -f1 -d ",") $(echo "${i}" | cut -f2 -d ",") "$RAW_READS"/extracted/"$(echo "${i}" | cut -f1 -d ",")"*
 done
-
-#We asses the quality of the reads after removing the adapters.
-for i in $(cat $RAW/Sample.list)
-do
-fastqc \
-    $RM/fastq_wo_adapt/${i}.RmAdp_1.fq.gz \
-    $RM/fastq_wo_adapt/${i}.RmAdp_2.fq.gz \
-    -o $RM/fastqc_wo_adapt
-done
-#We use bbduk again, now for trimming any PhiX174 sequence, that is used in Illumina sequencing and remove the low quality reads (Q-score < 20). Again, phix174_ill.ref.fa was downloaded from BBMap. More info about BBDuk:
-#https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/
-for i in $(cat $RAW/Sample.list)
-do
-bbduk.sh \
-    in1=$RM/fastq_wo_adapt/${i}.RmAdp_1.fq.gz \
-    in2=$RM/fastq_wo_adapt/${i}.RmAdp_2.fq.gz \
-    out1=$RM/fastq_clean/${i}.clean_1.fq.gz \
-    out2=$RM/fastq_clean/${i}.clean_2.fq.gz \
-    ref=~/PhD/db/Adapters/phix174_ill.ref.fa \
-    k=31 hdist=1 qtrim=rl trimq=20
-done
-
-#We asses the quality of the reads after quality trimming. If you look at the html files you will realise that the quality of the reverse reads increases a lot.
-for i in $(cat $RAW/Sample.list)
-do
-fastqc \
-    $RM/fastq_clean/${i}.clean_1.fq.gz \
-    $RM/fastq_clean/${i}.clean_2.fq.gz \
-    -o $RM/fastqc_clean
-done
-
-
-
-# Trim reads 
-cutadapt \
--q 18 \
---minimum-length 75 \
--o trimmed-read1.fq.gz \
--p trimmed-read2.fq.gz \
--b ACACTCTTTCCCTACACGACGCTCTTCCGATC \
--B CAAGCAGAAGACGGCATACGAGAT \
--O 15 \
--n 3 \
-read1.fq.gz \
-read2.fq.gz
-
-
-
-
-# align to reference
-bwa mem \
--M \
--t 24 \
-"$REFERENCE" \
-trimmed-read1.fastq.gz \
-trimmed-read2.fastq.gz \
-| samtools view \
--Sbh -q 20 -F 0x100 - > library.bam
-
-# create reads groups 
