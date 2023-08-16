@@ -1,5 +1,5 @@
 {
-    "fasta_txt": "fasta.txt",
+    "fasta_txt": "",
     "anvi_gen_contigs_database": {
         "--project-name": "{group}",
         "--description": "",
@@ -58,7 +58,7 @@
         "--simplify-names": true,
         "--keep-ids": "",
         "--exclude-ids": "",
-        "--min-len": "",
+        "--min-len": 1000,
         "--seq-type": "",
         "threads": ""
     },
@@ -149,7 +149,7 @@
     },
     "bowtie": {
         "additional_params": "--no-unal",
-        "threads": 3
+        "threads": 8
     },
     "samtools_view": {
         "additional_params": "-F 4",
@@ -289,16 +289,16 @@
     "kraken_txt": "",
     "collections_txt": "",
     "output_dirs": {
-        "FASTA_DIR": "$WORKDIR/02_FASTA",
-        "CONTIGS_DIR": "$WORKDIR/03_CONTIGS",
-        "QC_DIR": "$WORKDIR/01_QC",
-        "MAPPING_DIR": "$WORKDIR/04_MAPPING",
-        "PROFILE_DIR": "$WORKDIR/05_ANVIO_PROFILE",
-        "MERGE_DIR": "$WORKDIR/06_MERGED",
-        "TAXONOMY_DIR": "$WORKDIR/07_TAXONOMY",
-        "SUMMARY_DIR": "$WORKDIR/08_SUMMARY",
-        "SPLIT_PROFILES_DIR": "$WORKDIR/09_SPLIT_PROFILES",
-        "LOGS_DIR": "$WORKDIR/00_LOGS"
+        "FASTA_DIR": "02_FASTA",
+        "CONTIGS_DIR": "03_CONTIGS",
+        "QC_DIR": "01_QC",
+        "MAPPING_DIR": "04_MAPPING",
+        "PROFILE_DIR": "05_ANVIO_PROFILE",
+        "MERGE_DIR": "06_MERGED",
+        "TAXONOMY_DIR": "07_TAXONOMY",
+        "SUMMARY_DIR": "08_SUMMARY",
+        "SPLIT_PROFILES_DIR": "09_SPLIT_PROFILES",
+        "LOGS_DIR": "00_LOGS"
     },
     "max_threads": "",
     "config_version": "2",
