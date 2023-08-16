@@ -53,14 +53,3 @@ do
       wget -P "$RAW_READS" $(grep "${i}" "$WORKDIR"/ftp.txt)
     fi
 done
-
-# For some reason, in paired-end SRR accessions a file with low quality reads is also downloaded. We don't want it.
-# for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
-# do
-#     if [ -f "$RAW_READS"/"${i}"_1.fastq.gz ] && [ -f "$RAW_READS"/"${i}"_2.fastq.gz ] && [ -f "$RAW_READS"/"${i}".fastq.gz ]
-#     then
-#       #rm "$RAW_READS"/"${i}".fastq.gz
-#       echo "File "${i}".fastq.gz was lost forever. It weighted $(wc -c "$RAW_READS"/"${i}".fastq.gz | cut -f2 -d " ")"
-#     fi
-# done
-
