@@ -5,9 +5,9 @@
 # Bosco Gracia Alvira, 2023
 
 ### VARIABLES
-CODE="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/code"
-WORKDIR="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/DeNovo_Assembly"
-RAW_READS="/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/raw_reads"
+CODE="/Volumes/Data/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/code"
+WORKDIR="/Volumes/Data/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/DeNovo_Assembly"
+RAW_READS="/Volumes/Data/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data/raw_reads"
 
 eval "$(conda shell.bash hook)"
 conda activate anvio-7.1
