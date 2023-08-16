@@ -16,7 +16,7 @@
     "centrifuge": {
         "threads": 2,
         "run": true,
-        "db": "/Users/bgracia/PhD_local/db/centrifuge"
+        "db": "../../../db/centrifuge"
     },
     "anvi_run_hmms": {
         "run": true,
