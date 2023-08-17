@@ -122,7 +122,7 @@ done
 # We check if the same accessions are found in the "raw reads" and in the "extracted reads"
 for i in $(cut -f1 "$WORKDIR"/ENA_* | grep -v "run_accession")
 do
-    if [[ -n "$(find "$RAW_READS" -name "${i}*.fastq.gz" -maxdepth 1 -print -quit)" && -n "$(find ""$WORKDIR"/raw_reads" -name "${i}*.fastq.gz" -print -quit)" ]]
+    if [[ -n "$(find "$RAW_READS" -name "${i}*.fastq.gz" -maxdepth 1 -print -quit)" && -n "$(find "$WORKDIR/raw_reads" -name "${i}*.fastq.gz" -print -quit)" ]]
     then
         :
     else
@@ -133,5 +133,5 @@ done
 # Using the ENA information we rename the files to make them match the library name
 for i in $(cat "$WORKDIR"/ENA_* | cut -f1,2 | tr "\t" ",")
 do  
-    rename -s $(echo "${i}" | cut -f1 -d ",") $(echo "${i}" | cut -f2 -d ",") "$WORKDIR"/raw_reads/"$(echo "${i}" | cut -f1 -d ",")"_?.fastq.gz
+    rename -s "$(echo "${i}" | cut -f1 -d ",") $(echo "${i}" | cut -f2 -d ",")" "$WORKDIR"/raw_reads/"$(echo "${i}" | cut -f1 -d ",")"_?.fastq.gz
 done
