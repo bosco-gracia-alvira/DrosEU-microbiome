@@ -242,7 +242,7 @@
         "threads": ""
     },
     "anvi_run_pfams": {
-        "run": "",
+        "run": true,
         "--pfam-data-dir": "",
         "threads": ""
     },
