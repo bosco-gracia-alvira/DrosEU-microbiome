@@ -16,7 +16,7 @@
     "centrifuge": {
         "threads": 2,
         "run": true,
-        "db": "../../../db/centrifuge"
+        "db": "/Volumes/Data/db/centrifuge"
     },
     "anvi_run_hmms": {
         "run": true,
@@ -205,7 +205,7 @@
     "anvi_cluster_contigs": {
         "--collection-name": "{driver}",
         "run": true,
-        "--driver": "metabat2",
+        "--driver": "concoct",
         "--just-do-it": "",
         "--additional-params-concoct": "",
         "--additional-params-metabat2": "",
