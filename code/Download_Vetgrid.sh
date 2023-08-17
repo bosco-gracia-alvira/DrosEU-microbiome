@@ -43,13 +43,13 @@ do
     if [ -f "$RAW_READS"/"${i}"_1.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}"_2.fastq.gz ]
     then
       echo "${i}_2.fastq.gz"
-      wget -P "$RAW_READS" $(grep "${i}_2.fastq.gz" "$WORKDIR"/ftp.txt)
+      wget -P "$RAW_READS" "$(grep "${i}_2.fastq.gz" "$WORKDIR"/ftp.txt)"
     elif [ -f "$RAW_READS"/"${i}"_2.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}"_1.fastq.gz ]
     then 
       echo "${i}_1.fastq.gz"
-      wget -P "$RAW_READS" $(grep "${i}_1.fastq.gz" "$WORKDIR"/ftp.txt)
+      wget -P "$RAW_READS" "$(grep "${i}_1.fastq.gz" "$WORKDIR"/ftp.txt)"
     elif [ ! -f "$RAW_READS"/"${i}"_2.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}"_1.fastq.gz ] && [ ! -f "$RAW_READS"/"${i}".fastq.gz ]
     then
-      wget -P "$RAW_READS" $(grep "${i}" "$WORKDIR"/ftp.txt)
+      wget -P "$RAW_READS" "$(grep "${i}" "$WORKDIR"/ftp.txt)"
     fi
 done
