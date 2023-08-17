@@ -48,4 +48,12 @@ rm "$WORKDIR"/*.tmp
 anvi-run-workflow -w metagenomics \
                   -c "$CODE"/metagenomics-config.json
 
+# In case it is needed
+anvi-run-workflow -w metagenomics \
+                  -c "$CODE"/metagenomics-config.json \
+                  --additional-params \
+                    --unlock \
+                    --keep-going \
+                    --rerun-incomplete
+
 echo "Voilà, your metagenome is ready for binning"
