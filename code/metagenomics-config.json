@@ -21,7 +21,7 @@
     "anvi_run_hmms": {
         "run": true,
         "threads": 8,
-        "--also-scan-trnas": true,
+        "--also-scan-trnas": false,
         "--installed-hmm-profile": "",
         "--hmm-profile-dir": ""
     },
