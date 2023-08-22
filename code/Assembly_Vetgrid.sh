@@ -45,10 +45,22 @@ cat "$WORKDIR"/header.tmp "$WORKDIR"/body.tmp > "$WORKDIR"/samples.txt
 
 rm "$WORKDIR"/*.tmp
 
+# This will probably break at the assembly step, or take forever
 anvi-run-workflow -w metagenomics \
                   -c "$CODE"/metagenomics-config.json
 
-# In case it is needed
+# If the assembly breaks, you can run it alone and then continue with the workflow
+metaspades.py \
+  -1 "$WORKDIR"/01_QC/DrosEU-merged_R1.fastq \
+  -2 "$WORKDIR"/01_QC/DrosEU-merged_R2.fastq \
+  -o "$WORKDIR"/02_FASTA/DrosEU \
+  --threads 16 \
+  -k 21,33,55,77
+
+cp "$WORKDIR"/02_FASTA/DrosEU/scaffolds.fasta "$WORKDIR"/02_FASTA/DrosEU/final.contigs.fa
+cp "$WORKDIR"/02_FASTA/DrosEU/spades.log "$WORKDIR"/00_LOGS/DrosEU-metaspades.log
+
+# Now you continue with the worklfow
 anvi-run-workflow -w metagenomics \
                   -c "$CODE"/metagenomics-config.json \
                   --additional-params \
