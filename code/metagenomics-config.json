@@ -15,8 +15,8 @@
     },
     "centrifuge": {
         "threads": 2,
-        "run": true,
-        "db": "/Volumes/Data/db/centrifuge"
+        "run": false,
+        "db": "/Volumes/Data/db/centrifuge/nt"
     },
     "anvi_run_hmms": {
         "run": true,
@@ -81,7 +81,7 @@
         "additional_params": "--only-assembler",
         "threads": 8,
         "run": true,
-        "use_scaffolds": ""
+        "use_scaffolds": true
     },
     "megahit": {
         "--min-contig-len": 1000,
@@ -300,7 +300,7 @@
         "SPLIT_PROFILES_DIR": "09_SPLIT_PROFILES",
         "LOGS_DIR": "00_LOGS"
     },
-    "max_threads": "",
+    "max_threads": 16,
     "config_version": "2",
     "workflow_name": "metagenomics"
 }
