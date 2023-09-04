@@ -80,14 +80,14 @@
     "metaspades": {
         "additional_params": "--only-assembler",
         "threads": 8,
-        "run": true,
+        "run": false,
         "use_scaffolds": true
     },
     "megahit": {
         "--min-contig-len": 1000,
         "--memory": 0.4,
-        "threads": 7,
-        "run": false,
+        "threads": 8,
+        "run": true,
         "--min-count": "",
         "--k-min": "",
         "--k-max": "",
@@ -204,7 +204,7 @@
     },
     "anvi_cluster_contigs": {
         "--collection-name": "{driver}",
-        "run": true,
+        "run": false,
         "--driver": "concoct",
         "--just-do-it": "",
         "--additional-params-concoct": "",
