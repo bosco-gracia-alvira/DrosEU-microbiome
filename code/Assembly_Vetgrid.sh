@@ -69,4 +69,17 @@ anvi-run-workflow -w metagenomics \
                     --keep-going \
                     --unlock
 
+# The last steps are summarising the results before binning:
+
+# With the following command you can check the state of your contigs.db. I keep it commented so it doesn't interfere with the script.
+# anvi-display-contigs-stats "$WORKDIR"/03_CONTIGS/DrosEU-contigs.db
+
+# This command infers the taxonomy of the single copy genes found in the metagenomes as well as their abundance in each sample
+anvi-estimate-scg-taxonomy \
+  -c "$WORKDIR"/03_CONTIGS/DrosEU-contigs.db \
+  -p "$WORKDIR"/06_MERGED/DrosEU/PROFILE.db \
+  -o "$WORKDIR"/06_MERGED/DrosEU/scg_cov.tsv \
+  --metagenome-mode \
+  --compute-scg-coverages
+
 echo "Voilà, your metagenome is ready for binning"
