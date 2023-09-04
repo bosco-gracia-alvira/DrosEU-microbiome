@@ -78,7 +78,6 @@ then
 
 fi
 
-
 # Reads retrieved from ENA are already trimmed and don't have adapters :) If you don't believe me run FastQC
 # We align them to the reference file
 
@@ -131,7 +130,7 @@ do
 done
 
 # Using the ENA information we rename the files to make them match the library name
-for i in $(cat "$WORKDIR"/ENA_* | cut -f1,2 | tr "\t" ",")
+for i in $(cat "$WORKDIR"/ENA_* | grep -v "run_accession" | cut -f1,2 | tr "\t" ",")
 do  
-    rename -s "$(echo "${i}" | cut -f1 -d ",") $(echo "${i}" | cut -f2 -d ",")" "$WORKDIR"/raw_reads/"$(echo "${i}" | cut -f1 -d ",")"_?.fastq.gz
+    rename -s "$(echo "${i}" | cut -f1 -d ",")" "$(echo "${i}" | cut -f2 -d ",")" "$WORKDIR"/raw_reads/"$(echo "${i}" | cut -f1 -d ",")"_?.fastq.gz
 done
