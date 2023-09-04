@@ -50,22 +50,23 @@ anvi-run-workflow -w metagenomics \
                   -c "$CODE"/metagenomics-config.json
 
 # If the assembly breaks, you can run it alone and then continue with the workflow
-metaspades.py \
+nice -5 megahit \
   -1 "$WORKDIR"/01_QC/DrosEU-merged_R1.fastq \
   -2 "$WORKDIR"/01_QC/DrosEU-merged_R2.fastq \
   -o "$WORKDIR"/02_FASTA/DrosEU \
-  --threads 16 \
-  -k 21,33,55,77
+  --k-list 21,33,55,77 \
+  -t 8 \
+  --min-contig-len 1000
 
 cp "$WORKDIR"/02_FASTA/DrosEU/scaffolds.fasta "$WORKDIR"/02_FASTA/DrosEU/final.contigs.fa
-cp "$WORKDIR"/02_FASTA/DrosEU/spades.log "$WORKDIR"/00_LOGS/DrosEU-metaspades.log
+cp "$WORKDIR"/02_FASTA/DrosEU/log "$WORKDIR"/00_LOGS/DrosEU-megahit.log
 
 # Now you continue with the worklfow
 anvi-run-workflow -w metagenomics \
                   -c "$CODE"/metagenomics-config.json \
                   --additional-params \
-                    --unlock \
+                    --rerun-incomplete \
                     --keep-going \
-                    --rerun-incomplete
+                    --unlock
 
 echo "Voilà, your metagenome is ready for binning"
