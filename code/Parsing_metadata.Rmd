@@ -5,6 +5,9 @@ date: "2023-07-06"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data")
+```
 
 ## Library loading
 
@@ -16,13 +19,11 @@ library(gtools)
 library(patchwork)
 library(data.table)
 library(stringr)
+library(ISOcodes)
 ```
 
 
 ```{r Set working directory, message=FALSE, warning=FALSE}
-# You might need to set the working directory manually in the terminal, tut mir leid :(
-setwd("/Users/bgracia/Dropbox (PopGen)/Bosco/PhD_Dropbox/DrosEU-microbiome/data")
-
 list.files()
 ```
 
@@ -30,46 +31,48 @@ list.files()
 ```{r Tables loading, message=FALSE, warning=FALSE}
 # We load the metadata from the two projects
 
-metadata_PRJNA308584 <- read.table("metadata_PRJNA308584.tsv", sep = "\t", header=T)
-metadata_PRJNA308584 <- metadata_PRJNA308584[,c()]
-ENA_PRJNA308584 <- read.table("ENA_PRJNA308584.tsv", sep = "\t", header=T)
+DrosEU_metadata <- read.delim("DrosEU_metadata.csv", sep = ",", header=T)
+DrosEU_metadata <- DrosEU_metadata[complete.cases(DrosEU_metadata[, 13]), ]
 
-metadata_PRJNA388788 <- read.table("metadata_PRJNA388788.tsv", sep = "\t", header=T)
+metadata_PRJNA308584 <- read.delim("metadata_PRJNA308584.tsv", sep = "\t", header=T)
+metadata_PRJNA308584 <- metadata_PRJNA308584[,c(5,1:4,6:16)]
+ENA_PRJNA308584 <- read.delim("ENA_PRJNA308584.tsv", sep = "\t", header=T)
+ENA_PRJNA308584 <- data.frame(InternalName = ENA_PRJNA308584[,2])
+
+metadata_PRJNA388788 <- read.delim("metadata_PRJNA388788.tsv", sep = "\t", header=T)
 metadata_PRJNA388788 <- metadata_PRJNA388788[,c(1:3,6:9,13)]
-ENA_PRJNA388788 <- read.table("ENA_PRJNA388788.tsv", sep = "\t", header=T)
+ENA_PRJNA388788 <- read.delim("ENA_PRJNA388788.tsv", sep = "\t", header=T)
+ENA_PRJNA388788 <- data.frame(ID = ENA_PRJNA388788[,2])
+
+Country <- ISO_3166_1[,c(4,1)]
 
 ```
 
 
 ```{r Tables merging, message=FALSE, warning=FALSE}
 # We merge the available data from each project
+merged_PRJNA308584 <- merge(metadata_PRJNA308584, ENA_PRJNA308584, by = "InternalName", all = TRUE)
+
+merged_PRJNA388788 <- merge(metadata_PRJNA388788, ENA_PRJNA388788, by = "ID", all = TRUE)
+
+merged_total <- 
 
 
 
 
-metadata_PRJNA308584 <- read.table("metadata_PRJNA308584.tsv", sep = "\t", header=T)
-ENA_PRJNA308584 <- read.table("ENA_PRJNA308584.tsv", sep = "\t", header=T)
 
-metadata_PRJNA388788 <- read.table("metadata_PRJNA388788.tsv", sep = "\t", header=T)
-ENA_PRJNA388788 <- read.table("ENA_PRJNA388788.tsv", sep = "\t", header=T)
 
-```
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+# Extract country codes from Code column in Table 1
+table1 <- table1 %>%
+  mutate(CountryCode = str_extract(Code, "[A-Z]{2}"))  # Assuming country code is always two uppercase letters
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Merge Table 1 with Table 2 to fill in Country column
+result <- table1 %>%
+  left_join(table2, by = "CountryCode") %>%
+  select(-CountryCode)  # Remove the intermediate CountryCode column
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
